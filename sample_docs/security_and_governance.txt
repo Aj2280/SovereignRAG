@@ -1,0 +1,12 @@
+Local RAG Security and Offline Governance Policy
+
+Section 1: Air-Gapped and Local-Only Execution
+The system includes a strict local-only mode. When local_only is enabled in config.yaml, all outbound network requests to third-party APIs are disabled.
+Model inference executes locally via Ollama or llama.cpp Metal-accelerated engines on Apple Silicon (MPS).
+
+Section 2: Prompt-Injection Sanitization
+Retrieved passages are enclosed within inert data tags and treated as untrusted strings. The system prompt instructs the generator LLM never to follow instructions or commands contained inside document chunks.
+
+Section 3: Auditability and Observability
+Every pipeline step is logged with structured event tracing: original query, rewritten query, dense hits, sparse hits, rerank scores, and self-check verification metrics.
+

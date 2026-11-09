@@ -1,0 +1,189 @@
+system:
+  name: "LocalRAG"
+  version: "0.1.0"
+  local_only: true
+  log_level: "INFO"
+  device: "auto"  # "auto", "mps", "cuda", "cpu"
+
+profiles:
+  active: "deep_reasoning_fast"
+
+  deep_reasoning_fast:
+    description: "DeepSeek-R1 1.5B (Instant download, full chain-of-thought) + BGE-M3 + BGE-Reranker-v2-m3"
+    llm:
+      provider: "ollama"
+      model: "deepseek-r1:1.5b"
+      temperature: 0.1
+      max_tokens: 2048
+      context_window: 16384
+    embeddings:
+      provider: "sentence-transformers"
+      model: "BAAI/bge-m3"
+      dimension: 1024
+      batch_size: 16
+    reranker:
+      provider: "cross-encoder"
+      model: "BAAI/bge-reranker-v2-m3"
+      top_n: 5
+
+  deep_reasoning:
+    description: "DeepSeek-R1 Distill Qwen 14B + BGE-M3 + BGE-Reranker-v2-m3"
+    llm:
+      provider: "ollama"
+      model: "deepseek-r1:14b"
+      temperature: 0.1
+      max_tokens: 4096
+      context_window: 32768
+    embeddings:
+      provider: "sentence-transformers"
+      model: "BAAI/bge-m3"
+      dimension: 1024
+      batch_size: 16
+    reranker:
+      provider: "cross-encoder"
+      model: "BAAI/bge-reranker-v2-m3"
+      top_n: 7
+
+  balanced:
+    description: "Qwen2.5 14B + BGE-M3 + BGE-Reranker-v2-m3"
+    llm:
+      provider: "ollama"
+      model: "qwen2.5:14b"
+      temperature: 0.1
+      max_tokens: 2048
+      context_window: 16384
+    embeddings:
+      provider: "sentence-transformers"
+      model: "BAAI/bge-m3"
+      dimension: 1024
+      batch_size: 16
+    reranker:
+      provider: "cross-encoder"
+      model: "BAAI/bge-reranker-v2-m3"
+      top_n: 5
+
+  speed_demon:
+    description: "Ultra-fast low-memory execution"
+    llm:
+      provider: "ollama"
+      model: "llama3.1:8b"
+      temperature: 0.1
+      max_tokens: 1024
+      context_window: 8192
+    embeddings:
+      provider: "sentence-transformers"
+      model: "nomic-ai/nomic-embed-text-v1.5"
+      dimension: 768
+      batch_size: 32
+    reranker:
+      provider: "cross-encoder"
+      model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+      top_n: 5
+
+providers:
+  llm:
+    ollama:
+      base_url: "http://localhost:11434"
+      timeout_seconds: 120
+    llamacpp:
+      base_url: "http://localhost:8080/v1"
+      timeout_seconds: 120
+    vllm:
+      base_url: "http://localhost:8000/v1"
+      timeout_seconds: 120
+    openai_compatible:
+      base_url: "http://localhost:1234/v1"  # e.g., LM Studio / LocalAI
+      api_key: "dummy"
+      timeout_seconds: 120
+    claude:
+      api_key_env: "ANTHROPIC_API_KEY"
+      model: "claude-3-5-sonnet-20241022"
+
+  embeddings:
+    sentence_transformers:
+      cache_dir: "./data/models/embeddings"
+      device: "auto"
+    ollama:
+      base_url: "http://localhost:11434"
+      model: "bge-m3"
+    openai_compatible:
+      base_url: "http://localhost:1234/v1"
+      model: "text-embedding-3-small"
+
+  rerankers:
+    cross_encoder:
+      cache_dir: "./data/models/rerankers"
+      device: "auto"
+
+storage:
+  qdrant:
+    mode: "local"  # "local" (disk directory) or "memory" or "server"
+    path: "./data/qdrant"
+    collection_name: "nexusrag_chunks"
+    host: "localhost"
+    port: 6333
+  sqlite:
+    path: "./data/nexusrag.db"
+  bm25:
+    path: "./data/bm25_index.json"
+  graph:
+    enabled: false
+    backend: "networkx"
+
+ingestion:
+  supported_extensions:
+    - ".pdf"
+    - ".docx"
+    - ".pptx"
+    - ".html"
+    - ".htm"
+    - ".md"
+    - ".txt"
+    - ".csv"
+    - ".xlsx"
+    - ".py"
+    - ".js"
+    - ".ts"
+    - ".json"
+  chunking:
+    strategy: "parent_child"
+    parent_chunk_size: 1500
+    parent_overlap: 150
+    child_chunk_size: 400
+    child_overlap: 50
+    semantic_fallback: true
+  contextual_retrieval:
+    enabled: false
+    max_summary_tokens: 100
+  incremental:
+    hash_algorithm: "sha256"
+    watch_interval_seconds: 5
+
+retrieval:
+  top_k_dense: 50
+  top_k_sparse: 50
+  rrf_k: 60
+  dense_weight: 0.6
+  sparse_weight: 0.4
+  reranker_enabled: true
+  rerank_top_n: 5
+  mmr:
+    enabled: true
+    diversity: 0.3
+  agentic:
+    enabled: true
+    max_iterations: 3
+    sufficiency_threshold: 0.65
+
+generation:
+  system_prompt: |
+    You are a helpful, authoritative local-first AI assistant.
+    Answer the user query ONLY from the provided context passages.
+    Every factual assertion MUST be backed by an inline citation in the exact format: [doc: <document_title>, page: <page_number>, section: <section_name>].
+    If the context does not contain enough evidence to answer the question, clearly state: "The provided documents do not contain sufficient information to answer this question."
+    Do not speculate, do not extrapolate, and NEVER invent citations.
+  verification:
+    self_check_enabled: true
+    strict_no_hallucination: true
+    confidence_threshold: 0.70
+
