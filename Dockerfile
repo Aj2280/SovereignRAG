@@ -20,4 +20,4 @@ RUN pip install --no-deps -e .
 
 EXPOSE 8000 8501
 
-CMD ["python", "-m", "nexusrag.cli", "--help"]
+CMD ["python", "-m", "sovereignrag.cli", "--help"]

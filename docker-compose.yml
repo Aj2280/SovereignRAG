@@ -3,7 +3,7 @@ version: "3.8"
 services:
   qdrant:
     image: qdrant/qdrant:v1.7.4
-    container_name: nexusrag-qdrant
+    container_name: sovereignrag-qdrant
     restart: unless-stopped
     ports:
       - "6333:6333"
@@ -15,7 +15,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    container_name: nexusrag-ollama
+    container_name: sovereignrag-ollama
     restart: unless-stopped
     ports:
       - "11434:11434"
@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nexusrag-api
+    container_name: sovereignrag-api
     restart: unless-stopped
     depends_on:
       - qdrant
@@ -45,15 +45,15 @@ services:
       - ./data:/app/data
       - ./config.yaml:/app/config.yaml
     environment:
-      - NEXUSRAG_CONFIG_PATH=/app/config.yaml
+      - SOVEREIGNRAG_CONFIG_PATH=/app/config.yaml
       - OLLAMA_BASE_URL=http://ollama:11434
-    command: ["uvicorn", "nexusrag.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "sovereignrag.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
   ui:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nexusrag-ui
+    container_name: sovereignrag-ui
     restart: unless-stopped
     depends_on:
       - api
@@ -63,5 +63,5 @@ services:
       - ./data:/app/data
       - ./config.yaml:/app/config.yaml
     environment:
-      - NEXUSRAG_CONFIG_PATH=/app/config.yaml
-    command: ["streamlit", "run", "nexusrag/ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+      - SOVEREIGNRAG_CONFIG_PATH=/app/config.yaml
+    command: ["streamlit", "run", "sovereignrag/ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]

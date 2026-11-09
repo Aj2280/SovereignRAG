@@ -1,6 +1,6 @@
-# 🛡️ NexusRAG: Production-Grade, Local-First, Model-Agnostic RAG
+# 🛡️ SovereignRAG: Production-Grade, Local-First, Model-Agnostic RAG
 
-NexusRAG is a state-of-the-art, local-first Retrieval-Augmented Generation (RAG) system engineered for complete data privacy, high precision, and measurable retrieval quality. It runs 100% offline on your own hardware with zero data exfiltration, while allowing plug-and-play swapping of any LLM, embedding model, and reranker through `config.yaml`.
+SovereignRAG is a state-of-the-art, local-first Retrieval-Augmented Generation (RAG) system engineered for complete data privacy, high precision, and measurable retrieval quality. It runs 100% offline on your own hardware with zero data exfiltration, while allowing plug-and-play swapping of any LLM, embedding model, and reranker through `config.yaml`.
 
 ---
 
@@ -33,7 +33,7 @@ NexusRAG is a state-of-the-art, local-first Retrieval-Augmented Generation (RAG)
    - Measures Recall@k, MRR, nDCG@k, Answer Faithfulness, and Latency.
    - Automated ablation benchmark proving quality gains over naive vector RAG.
 10. **Modern Interfaces**:
-    - CLI tool (`nexusrag info`, `nexusrag ingest`, `nexusrag ask`, `nexusrag eval`, `nexusrag serve`).
+    - CLI tool (`sovereignrag info`, `sovereignrag ingest`, `sovereignrag ask`, `sovereignrag eval`, `sovereignrag serve`).
     - FastAPI REST service with Server-Sent Events (SSE) streaming token output.
     - Streamlit interactive Web UI with source passage inspection.
     - Docker Compose for one-click deployment.
@@ -111,12 +111,12 @@ ollama pull qwen2.5:14b
 ### 3. Check System Status & Hardware
 
 ```bash
-nexusrag info
+sovereignrag info
 ```
 
 Output:
 ```
-                          NexusRAG System Status                           
+                          SovereignRAG System Status                           
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Property           ┃ Value                                              ┃
 ┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
@@ -142,22 +142,22 @@ Output:
 
 ```bash
 # Ingest an individual file
-nexusrag ingest ./my_documents/manual.pdf
+sovereignrag ingest ./my_documents/manual.pdf
 
 # Ingest an entire directory recursively
-nexusrag ingest ./sample_docs/
+sovereignrag ingest ./sample_docs/
 ```
 
 ### Ask Questions with Verified Citations
 
 ```bash
-nexusrag ask "How does NexusRAG perform hybrid search fusion?"
+sovereignrag ask "How does SovereignRAG perform hybrid search fusion?"
 ```
 
 Output:
 ```
-NexusRAG combines dense vector retrieval from Qdrant with sparse lexical retrieval 
-from BM25Plus using Reciprocal Rank Fusion (RRF) [doc: nexus_architecture, page: 1, section: Hybrid Retrieval Engine].
+SovereignRAG combines dense vector retrieval from Qdrant with sparse lexical retrieval 
+from BM25Plus using Reciprocal Rank Fusion (RRF) [doc: sovereign_architecture, page: 1, section: Hybrid Retrieval Engine].
 ```
 
 ### Run Ablation Benchmark
@@ -165,12 +165,12 @@ from BM25Plus using Reciprocal Rank Fusion (RRF) [doc: nexus_architecture, page:
 Compare naive RAG vs hybrid search vs reranking vs full pipeline:
 
 ```bash
-nexusrag eval
+sovereignrag eval
 ```
 
 Benchmark output:
 ```
-                      NexusRAG Pipeline Ablation Benchmark                      
+                      SovereignRAG Pipeline Ablation Benchmark                      
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
 ┃ Pipeline Configuration        ┃ Recall@5 ┃   MRR ┃ nDCG@5 ┃ Verification Rate ┃   Avg Latency (ms)┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
@@ -178,14 +178,14 @@ Benchmark output:
 │ BM25 Lexical Only             │    65.0% │ 0.550 │  0.600 │             65.0% │            1.8 ms │
 │ Hybrid (Dense + BM25)         │    85.0% │ 0.750 │  0.800 │             75.0% │            5.9 ms │
 │ Hybrid + Cross-Encoder Rerank │    95.0% │ 0.900 │  0.920 │             88.0% │           22.4 ms │
-│ ★ Full NexusRAG Pipeline      │   100.0% │ 1.000 │  1.000 │             98.5% │           48.1 ms │
+│ ★ Full SovereignRAG Pipeline      │   100.0% │ 1.000 │  1.000 │             98.5% │           48.1 ms │
 └───────────────────────────────┴──────────┴───────┴────────┴───────────────────┴───────────────────┘
 ```
 
 ### Start FastAPI REST Server
 
 ```bash
-nexusrag serve --host 127.0.0.1 --port 8000
+sovereignrag serve --host 127.0.0.1 --port 8000
 ```
 API Documentation will be live at `http://127.0.0.1:8000/docs`.
 
@@ -199,7 +199,7 @@ Key Endpoints:
 ### Start Streamlit Web UI
 
 ```bash
-streamlit run nexusrag/ui/streamlit_app.py
+streamlit run sovereignrag/ui/streamlit_app.py
 ```
 Open `http://localhost:8501` to use the interactive chat interface, upload documents, and inspect retrieved source passages.
 

@@ -1,13 +1,13 @@
 """Unit tests for structure-aware parent-child chunking."""
 
-from nexusrag.ingestion.chunking import StructureAwareChunker
-from nexusrag.ingestion.parsers.base import ParsedDocument, ParsedElement
+from sovereignrag.ingestion.chunking import StructureAwareChunker
+from sovereignrag.ingestion.parsers.base import ParsedDocument, ParsedElement
 
 
 def test_structure_aware_chunker():
     elements = [
         ParsedElement(text="Architecture Overview", element_type="heading", section_title="Overview"),
-        ParsedElement(text="NexusRAG is a local-first RAG engine designed for high precision offline search.", element_type="paragraph", section_title="Overview"),
+        ParsedElement(text="SovereignRAG is a local-first RAG engine designed for high precision offline search.", element_type="paragraph", section_title="Overview"),
         ParsedElement(text="Hybrid Search Details", element_type="heading", section_title="Search"),
         ParsedElement(text="It fuses dense vectors from Qdrant with BM25 keyword rankings using RRF.", element_type="paragraph", section_title="Search"),
     ]

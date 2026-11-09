@@ -119,11 +119,11 @@ storage:
   qdrant:
     mode: "local"  # "local" (disk directory) or "memory" or "server"
     path: "./data/qdrant"
-    collection_name: "nexusrag_chunks"
+    collection_name: "sovereignrag_chunks"
     host: "localhost"
     port: 6333
   sqlite:
-    path: "./data/nexusrag.db"
+    path: "./data/sovereignrag.db"
   bm25:
     path: "./data/bm25_index.json"
   graph:

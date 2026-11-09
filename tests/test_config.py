@@ -1,6 +1,6 @@
 """Unit tests for configuration loader."""
 
-from nexusrag.core.config import AppConfig, load_config
+from sovereignrag.core.config import AppConfig, load_config
 
 
 def test_load_config_defaults(tmp_path):
@@ -8,7 +8,7 @@ def test_load_config_defaults(tmp_path):
     cfg_file.write_text(
         """
 system:
-  name: "TestNexus"
+  name: "TestSovereign"
   local_only: true
 profiles:
   active: "speed_demon"
@@ -27,7 +27,7 @@ profiles:
     )
 
     config = load_config(str(cfg_file))
-    assert config.system.name == "TestNexus"
+    assert config.system.name == "TestSovereign"
     assert config.system.local_only is True
 
     profile = config.get_active_profile()

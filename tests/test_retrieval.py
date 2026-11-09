@@ -1,13 +1,13 @@
 """Unit tests for Hybrid Search, Reranking, and Query Router."""
 
-from nexusrag.providers.embeddings.mock import MockEmbeddingProvider
-from nexusrag.providers.rerankers.mock import MockRerankerProvider
-from nexusrag.retrieval.hybrid import HybridRetriever, RetrievedChunk
-from nexusrag.retrieval.rerank import ContextReranker
-from nexusrag.retrieval.router import QueryRoute, QueryRouter
-from nexusrag.storage.bm25 import BM25Index
-from nexusrag.storage.sqlite_store import SQLiteStore
-from nexusrag.storage.vector_store import QdrantVectorStore
+from sovereignrag.providers.embeddings.mock import MockEmbeddingProvider
+from sovereignrag.providers.rerankers.mock import MockRerankerProvider
+from sovereignrag.retrieval.hybrid import HybridRetriever, RetrievedChunk
+from sovereignrag.retrieval.rerank import ContextReranker
+from sovereignrag.retrieval.router import QueryRoute, QueryRouter
+from sovereignrag.storage.bm25 import BM25Index
+from sovereignrag.storage.sqlite_store import SQLiteStore
+from sovereignrag.storage.vector_store import QdrantVectorStore
 
 
 def test_hybrid_search(tmp_path):

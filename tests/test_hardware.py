@@ -1,6 +1,6 @@
 """Unit tests for hardware auto-detection."""
 
-from nexusrag.core.hardware import detect_apple_silicon, detect_ram, get_hardware_profile
+from sovereignrag.core.hardware import detect_apple_silicon, detect_ram, get_hardware_profile
 
 
 def test_hardware_profile():

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "eval_001",
+    "query": "What are the primary architectural goals of SovereignRAG?",
+    "gold_docs": ["SovereignRAG_Architecture"],
+    "gold_chunk_ids": ["SovereignRAG_Architecture_p0_c0"],
+    "expected_answer": "SovereignRAG is designed to be 100% offline, model-agnostic, with verified citations, and high precision hybrid retrieval."
+  },
+  {
+    "id": "eval_002",
+    "query": "How does SovereignRAG perform hybrid search fusion?",
+    "gold_docs": ["SovereignRAG_Architecture"],
+    "gold_chunk_ids": ["SovereignRAG_Architecture_p1_c0"],
+    "expected_answer": "SovereignRAG uses Reciprocal Rank Fusion (RRF) combining dense cosine similarity from Qdrant with BM25 lexical scores."
+  },
+  {
+    "id": "eval_003",
+    "query": "What reranker model is recommended for multilingual precision?",
+    "gold_docs": ["SovereignRAG_Architecture"],
+    "gold_chunk_ids": ["SovereignRAG_Architecture_p2_c0"],
+    "expected_answer": "BAAI/bge-reranker-v2-m3 is recommended as the cross-encoder reranker."
+  }
+]

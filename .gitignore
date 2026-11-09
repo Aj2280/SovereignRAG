@@ -19,7 +19,7 @@ storage_data/
 *.db
 *.sqlite
 *.sqlite3
-nexusrag.db
+sovereignrag.db
 qdrant_storage/
 
 # System & OS

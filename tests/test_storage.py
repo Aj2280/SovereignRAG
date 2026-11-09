@@ -1,8 +1,8 @@
 """Unit tests for SQLite, BM25, and Qdrant storage layers."""
 
-from nexusrag.storage.bm25 import BM25Index
-from nexusrag.storage.sqlite_store import ChunkRecord, DocumentRecord, SQLiteStore
-from nexusrag.storage.vector_store import QdrantVectorStore
+from sovereignrag.storage.bm25 import BM25Index
+from sovereignrag.storage.sqlite_store import ChunkRecord, DocumentRecord, SQLiteStore
+from sovereignrag.storage.vector_store import QdrantVectorStore
 
 
 def test_sqlite_store(tmp_path):
@@ -54,7 +54,7 @@ def test_bm25_index(tmp_path):
 
     chunk_ids = ["c1", "c2"]
     texts = [
-        "NexusRAG performs local-first offline hybrid retrieval.",
+        "SovereignRAG performs local-first offline hybrid retrieval.",
         "Qdrant stores high-dimensional dense vectors with metadata filters.",
     ]
     metadatas = [{"title": "Doc 1"}, {"title": "Doc 2"}]

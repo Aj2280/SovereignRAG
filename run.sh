@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NexusRAG Unified Launcher
+# SovereignRAG Unified Launcher
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,26 +16,26 @@ COMMAND="${1:-help}"
 case "$COMMAND" in
     ui)
         echo "🛡️ Starting Streamlit Web UI on http://localhost:8501..."
-        streamlit run nexusrag/ui/streamlit_app.py
+        streamlit run sovereignrag/ui/streamlit_app.py
         ;;
     api|serve)
         echo "🚀 Starting FastAPI REST server on http://127.0.0.1:8000..."
-        python3 -m nexusrag.cli serve --host 127.0.0.1 --port 8000
+        python3 -m sovereignrag.cli serve --host 127.0.0.1 --port 8000
         ;;
     info|status)
-        python3 -m nexusrag.cli info
+        python3 -m sovereignrag.cli info
         ;;
     ingest)
         TARGET="${2:-sample_docs/}"
         echo "📂 Ingesting documents from: $TARGET"
-        python3 -m nexusrag.cli ingest "$TARGET"
+        python3 -m sovereignrag.cli ingest "$TARGET"
         ;;
     ask)
         if [ -z "$2" ]; then
             echo "Usage: ./run.sh ask \"Your question here\""
             exit 1
         fi
-        python3 -m nexusrag.cli ask "$2" "${@:3}"
+        python3 -m sovereignrag.cli ask "$2" "${@:3}"
         ;;
     test)
         echo "🧪 Running full test suite..."
@@ -43,7 +43,7 @@ case "$COMMAND" in
         ;;
     eval)
         echo "📊 Running Ablation Evaluation Benchmark..."
-        python3 -m nexusrag.cli eval
+        python3 -m sovereignrag.cli eval
         ;;
     help|*)
         echo "Unified Launcher"
