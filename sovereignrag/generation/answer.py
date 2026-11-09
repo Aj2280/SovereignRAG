@@ -115,6 +115,7 @@ class SovereignRAGEngine:
         query: str,
         session_id: Optional[str] = None,
         enable_debatelens: bool = False,
+        enable_self_check: Optional[bool] = None,
         filter_metadata: Optional[Dict[str, Any]] = None,
     ) -> QueryResponse:
         """Process question end-to-end and return verified answer with citations."""
@@ -144,9 +145,13 @@ class SovereignRAGEngine:
 
         # Direct Chit-chat handling
         if route == QueryRoute.DIRECT:
+            system_prompt = (
+                "You are SovereignRAG, a local-first, privacy-focused AI assistant running 100% offline. "
+                "Be polite, helpful, and concise. You can help users search, analyze, and query their uploaded local documents with verified citations."
+            )
             direct_resp = self.llm.generate(
                 prompt=query,
-                system_prompt=None,
+                system_prompt=system_prompt,
                 temperature=0.3,
             )
             answer_text = direct_resp.content.strip()
@@ -155,6 +160,12 @@ class SovereignRAGEngine:
             if think_match:
                 thought_process = think_match.group(1).strip()
                 answer_text = re.sub(r"<think>.*?</think>", "", answer_text, flags=re.DOTALL).strip()
+
+            if not answer_text:
+                answer_text = (
+                    "Hello! I am SovereignRAG, your local-first document intelligence system running 100% offline. "
+                    "You can upload PDF, DOCX, Markdown, Text, or Code files, and ask questions across them with verified inline citations."
+                )
 
             if session_id:
                 self.sqlite.add_chat_message(session_id, "user", query)
@@ -181,22 +192,46 @@ class SovereignRAGEngine:
 
         if route == QueryRoute.SUMMARIZATION:
             # Document Overview / Page Summarization
-            db_chunks = self.sqlite.get_chunks_by_document(limit=8, page_number=target_page)
+            target_doc_id = None
+            all_docs = self.sqlite.list_documents()
+
+            for d in all_docs:
+                clean_title = re.sub(r"[^\w\s]", " ", d.title.lower())
+                title_words = [w for w in clean_title.split() if len(w) >= 4]
+                if d.doc_id.lower() in standalone_query.lower() or any(w in standalone_query.lower() for w in title_words):
+                    target_doc_id = d.doc_id
+                    break
+
+            if not target_doc_id and not target_page and all_docs:
+                target_doc_id = all_docs[0].doc_id
+
+            db_chunks = self.sqlite.get_chunks_by_document(doc_id=target_doc_id, limit=10, page_number=target_page)
+            if not db_chunks and target_page:
+                db_chunks = self.sqlite.get_chunks_by_document(doc_id=None, limit=10, page_number=target_page)
+
             if db_chunks:
-                chunks = [
-                    RetrievedChunk(
-                        chunk_id=c.chunk_id,
-                        text=c.text,
-                        score=0.95,
-                        parent_id=c.parent_id,
-                        doc_id=c.doc_id,
-                        title=c.doc_id,
-                        page_number=c.page_number,
-                        section_title=c.section_title,
-                        metadata=c.metadata,
+                seen_texts = set()
+                deduped_chunks = []
+                for c in db_chunks:
+                    chunk_text = (c.parent_text or c.text).strip()
+                    if chunk_text in seen_texts:
+                        continue
+                    seen_texts.add(chunk_text)
+                    doc_title = c.metadata.get("title", c.doc_id) if isinstance(c.metadata, dict) else c.doc_id
+                    deduped_chunks.append(
+                        RetrievedChunk(
+                            chunk_id=c.chunk_id,
+                            text=chunk_text,
+                            score=0.95,
+                            parent_id=c.parent_id,
+                            doc_id=c.doc_id,
+                            title=doc_title,
+                            page_number=c.page_number,
+                            section_title=c.section_title,
+                            metadata=c.metadata,
+                        )
                     )
-                    for c in db_chunks
-                ]
+                chunks = deduped_chunks
             else:
                 chunks, iterations, _ = self.agent_engine.retrieve_with_feedback(
                     standalone_query,
@@ -250,14 +285,18 @@ class SovereignRAGEngine:
         # 5. Self-check verification
         verification_result = None
         final_answer = raw_answer
-        if self.config.generation.verification.self_check_enabled:
+        run_self_check = (
+            enable_self_check if enable_self_check is not None
+            else self.config.generation.verification.self_check_enabled
+        )
+        if run_self_check and route != QueryRoute.DIRECT:
             verification_result = self.verifier.verify_answer(
                 query=standalone_query,
                 answer=raw_answer,
                 chunks=chunks,
                 threshold=self.config.generation.verification.confidence_threshold,
             )
-            if self.config.generation.verification.strict_no_hallucination and verification_result.hallucination_detected:
+            if self.config.generation.verification.strict_no_hallucination and verification_result.hallucination_detected and verification_result.filtered_answer:
                 final_answer = verification_result.filtered_answer
 
         # 6. Extract structured citations

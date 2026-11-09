@@ -122,6 +122,10 @@ for msg in st.session_state.messages:
             with st.expander("📚 Verified Citations"):
                 for cit in msg["citations"]:
                     st.markdown(f"- **{cit.get('doc')}** (Page {cit.get('page')}, Section: *{cit.get('section')}*)")
+        if "verification" in msg and msg["verification"]:
+            v_info = msg["verification"]
+            with st.expander(f"🛡️ Claim Self-Check: {v_info.get('status', 'Grounded')}"):
+                st.write(v_info.get("summary", ""))
         if "sources" in msg and msg["sources"]:
             with st.expander("🔍 Retrieved Source Chunks"):
                 for src in msg["sources"]:
@@ -154,6 +158,7 @@ if prompt := st.chat_input("Ask a question across your local documents..."):
                 resp = engine.ask(
                     query=prompt,
                     enable_debatelens=enable_debate,
+                    enable_self_check=enable_self_check,
                 )
 
             st.markdown(resp.answer)
@@ -168,6 +173,16 @@ if prompt := st.chat_input("Ask a question across your local documents..."):
                 with st.expander("📚 Verified Citations"):
                     for cit in resp.citations:
                         st.markdown(f"- **{cit.get('doc')}** (Page {cit.get('page')}, Section: *{cit.get('section')}*)")
+
+            # Show claim verification details
+            if resp.verification:
+                conf = int(resp.verification.confidence_score * 100)
+                ver_status = "✅ Grounded" if resp.verification.is_valid else "⚠️ Potential Hallucination"
+                with st.expander(f"🛡️ Claim Self-Check: {ver_status} ({conf}% confidence)"):
+                    st.write(f"Supported claims: **{resp.verification.supported_claims}** / **{resp.verification.total_claims}**")
+                    for cl in resp.verification.verified_claims:
+                        icon = "✅" if cl.is_supported else "❌"
+                        st.markdown(f"- {icon} *\"{cl.claim_text}\"* — {cl.explanation}")
 
             # Show sources
             if resp.sources:
@@ -189,6 +204,10 @@ if prompt := st.chat_input("Ask a question across your local documents..."):
                 "thought_process": resp.thought_process,
                 "citations": resp.citations,
                 "sources": resp.sources,
+                "verification": {
+                    "status": "✅ Grounded" if (resp.verification and resp.verification.is_valid) else "⚠️ Checked",
+                    "summary": f"Supported: {resp.verification.supported_claims}/{resp.verification.total_claims}" if resp.verification else "",
+                } if resp.verification else None,
             })
         except (ConnectionError, RuntimeError) as err:
             err_text = str(err)

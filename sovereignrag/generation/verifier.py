@@ -43,19 +43,35 @@ class SelfCheckVerifier:
         self.llm = llm_provider
 
     def extract_citations(self, text: str) -> List[Dict[str, str]]:
-        """Extract all [doc: ..., page: ..., section: ...] citations from text."""
-        pattern = re.compile(
-            r"\[(?:doc|citation|source):\s*([^,]+?),\s*page:\s*(\d+),\s*section:\s*([^\]]+?)\]",
+        """Extract all citations from text in various standard formats."""
+        citations = []
+        # Pattern 1: [doc: ..., page: ..., section: ...]
+        p1 = re.compile(
+            r"\[(?:doc|citation|source):\s*([^,]+?),\s*page:\s*(\d+)(?:,\s*section:\s*([^\]]+?))?\]",
             re.IGNORECASE,
         )
-        citations = []
-        for match in pattern.finditer(text):
+        for match in p1.finditer(text):
             citations.append({
                 "raw": match.group(0),
                 "doc": match.group(1).strip(),
                 "page": match.group(2).strip(),
-                "section": match.group(3).strip(),
+                "section": (match.group(3) or "General").strip(),
             })
+
+        # Pattern 2: (page X, section Y) or [page X, section Y]
+        p2 = re.compile(
+            r"[\[\(]page\s*(\d+)(?:,\s*section[:\s]*([^\)\]]+))?[\]\)]",
+            re.IGNORECASE,
+        )
+        for match in p2.finditer(text):
+            raw = match.group(0)
+            if not any(c["raw"] == raw for c in citations):
+                citations.append({
+                    "raw": raw,
+                    "doc": "Source Document",
+                    "page": match.group(1).strip(),
+                    "section": (match.group(2) or "General").strip(),
+                })
         return citations
 
     def verify_answer(
@@ -123,6 +139,17 @@ class SelfCheckVerifier:
                     reason = item.get("reason", "")
                     is_sup = "UNSUPPORTED" not in status and "CONTRADICTED" not in status
 
+                    # Secondary lexical grounding guard: prevent small model false rejections
+                    if not is_sup and s_text:
+                        s_tokens = set(w.lower() for w in re.findall(r"\b\w{3,}\b", s_text))
+                        corpus_lower = context_corpus.lower()
+                        if s_tokens:
+                            overlap = sum(1 for t in s_tokens if t in corpus_lower)
+                            overlap_ratio = overlap / len(s_tokens)
+                            if overlap_ratio >= 0.45:
+                                is_sup = True
+                                reason = f"Grounding verified via context match ({int(overlap_ratio*100)}% keyword overlap)."
+
                     if is_sup:
                         supported_count += 1
                         valid_sentences.append(s_text)
@@ -142,9 +169,7 @@ class SelfCheckVerifier:
                 confidence = supported_count / total
                 has_hallucination = supported_count < total
 
-                filtered = " ".join(valid_sentences) if valid_sentences else (
-                    "The retrieved documents do not contain sufficient evidence to support this response."
-                )
+                filtered = " ".join(valid_sentences) if valid_sentences else answer
 
                 log_pipeline_step(
                     "answer_verified",

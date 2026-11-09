@@ -29,13 +29,23 @@ class QueryRouter:
         """Route user query to appropriate execution strategy."""
         q_lower = query.strip().lower()
 
-        # 1. Rule-based check for chit-chat / direct questions
+        # 1. Rule-based check for chit-chat / direct conversational questions
+        direct_phrases = {
+            "hello", "hi", "hey", "thanks", "thank you", "bye", "goodbye",
+            "who are you", "what can you do", "good morning", "good evening", "good afternoon",
+            "what are you doing", "what are you", "what do you do", "how are you", "how are you doing",
+            "tell me about yourself", "help", "can you help me", "what is your name",
+            "who made you", "who created you", "what is this", "what is this system", "what is sovereignrag",
+            "how to use", "how do i use", "how to use this"
+        }
+        clean_q = re.sub(r"[^\w\s]", "", q_lower).strip()
+        if clean_q in direct_phrases:
+            log_pipeline_step("query_routed", {"query": query, "route": QueryRoute.DIRECT.value})
+            return QueryRoute.DIRECT
+
         chit_chat_words = {"hello", "hi", "hey", "thanks", "bye"}
         tokens = set(re.findall(r"\b\w+\b", q_lower))
         if tokens.intersection(chit_chat_words) and len(tokens) <= 3:
-            log_pipeline_step("query_routed", {"query": query, "route": QueryRoute.DIRECT.value})
-            return QueryRoute.DIRECT
-        if q_lower in {"who are you", "what can you do", "thank you", "good morning", "good evening"}:
             log_pipeline_step("query_routed", {"query": query, "route": QueryRoute.DIRECT.value})
             return QueryRoute.DIRECT
 
@@ -43,7 +53,9 @@ class QueryRouter:
         if any(term in q_lower for term in [
             "summarize", "summarazie", "summary", "summarise", "overview", "give an overview",
             "high level overview", "tl;dr", "tldr", "what to see", "open this document",
-            "what does this document say", "what is this document about", "explain this document"
+            "what does this document say", "what is this document about", "explain this document",
+            "tell me what is inside", "tell me what is in this", "page 1", "page 2", "page 3", "page 4",
+            "page no", "page number"
         ]):
             log_pipeline_step("query_routed", {"query": query, "route": QueryRoute.SUMMARIZATION.value})
             return QueryRoute.SUMMARIZATION

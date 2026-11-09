@@ -253,7 +253,7 @@ class SQLiteStore:
         page_number: Optional[int] = None,
     ) -> List[ChunkRecord]:
         """Fetch ordered chunks for a document or specific page."""
-        query = "SELECT * FROM chunks WHERE is_parent = 0"
+        query = "SELECT * FROM chunks WHERE 1=1"
         params: List[Any] = []
         if doc_id:
             query += " AND doc_id = ?"
@@ -261,7 +261,7 @@ class SQLiteStore:
         if page_number is not None:
             query += " AND page_number = ?"
             params.append(page_number)
-        query += " ORDER BY page_number ASC, start_char ASC LIMIT ?"
+        query += " ORDER BY page_number ASC, char_start ASC LIMIT ?"
         params.append(limit)
 
         with self._get_connection() as conn:

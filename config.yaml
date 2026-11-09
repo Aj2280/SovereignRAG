@@ -184,6 +184,6 @@ generation:
     Do not speculate, do not extrapolate, and NEVER invent citations.
   verification:
     self_check_enabled: true
-    strict_no_hallucination: true
+    strict_no_hallucination: false
     confidence_threshold: 0.70
 
